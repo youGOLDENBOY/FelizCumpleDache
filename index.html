@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feliz Cumpleaños, Dache 🌸</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Italiana&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Pétalos flotantes -->
+  <div class="petals" id="petals"></div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="subtitle-top">para nuestra querida</p>
+      <h1 class="hero-name">Damchely</h1>
+      <p class="hero-nick">&ldquo; Dache &rdquo;</p>
+      <div class="floral-divider">🌸 ✦ 🌸</div>
+      <p class="hero-age">cumple <span>15</span> años</p>
+    </div>
+  </section>
+
+  <!-- CUENTA REGRESIVA -->
+  <section class="countdown-section">
+    <p class="section-label">faltan</p>
+    <div class="countdown" id="countdown">
+      <div class="cd-block"><span id="cd-days">--</span><small>días</small></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block"><span id="cd-hours">--</span><small>horas</small></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block"><span id="cd-mins">--</span><small>minutos</small></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block"><span id="cd-secs">--</span><small>segundos</small></div>
+    </div>
+    <p id="birthday-msg" class="birthday-msg hidden">🎉 ¡Hoy es tu día, Dache! ¡Feliz cumpleaños! 🎉</p>
+  </section>
+
+  <!-- MÚSICA -->
+  <section class="music-section">
+    <p class="section-label">nuestra canción para ti</p>
+
+    <!-- Reproductor custom -->
+    <div class="audio-player" id="audio-player">
+      <div class="ap-cover">
+        <img src="img/song-cover.jpg" alt="Portada canción" id="ap-cover-img" onerror="this.style.display='none'; document.getElementById('ap-cover-fallback').style.display='flex'"/>
+        <div class="ap-cover-fallback" id="ap-cover-fallback">🎵</div>
+        <div class="ap-spin-ring"></div>
+      </div>
+      <div class="ap-info">
+        <p class="ap-title" id="ap-song-title">Cargando...</p>
+        <p class="ap-artist" id="ap-song-artist"></p>
+      </div>
+      <div class="ap-controls">
+        <button class="ap-btn" id="ap-play-btn" title="Play / Pausa">
+          <span id="ap-icon">▶</span>
+        </button>
+        <div class="ap-progress-wrap">
+          <div class="ap-progress-bar">
+            <div class="ap-progress-fill" id="ap-fill"></div>
+          </div>
+          <div class="ap-times">
+            <span id="ap-current">0:00</span>
+            <span id="ap-duration">0:00</span>
+          </div>
+        </div>
+        <input type="range" class="ap-volume" id="ap-volume" min="0" max="1" step="0.05" value="0.7" title="Volumen"/>
+        <span class="ap-vol-icon">🔊</span>
+      </div>
+    </div>
+
+    <!-- Audio element — pon tu archivo en img/song.mp3 -->
+    <audio id="bg-audio" loop>
+      <source src="img/song.mp3" type="audio/mpeg">
+    </audio>
+
+
+  </section>
+
+  <!-- FOTO -->
+  <section class="photo-section">
+    <div class="photo-frame">
+      <!-- Pon la foto de Dache en img/dache.jpg -->
+      <img id="dache-photo" src="img/dache.jpg" alt="Dache" onerror="this.src=''; this.style.background='linear-gradient(135deg,#f5dce2,#f0e6dc)'; this.style.minHeight='360px'"/>
+      <p class="photo-caption">nuestra Dache hermosa 🌸</p>
+    </div>
+
+  </section>
+
+  <!-- MENSAJES -->
+  <section class="messages-section">
+    <p class="section-label">palabras de sus amigos</p>
+    <div class="messages-grid" id="messages-grid">
+      <!-- Se llenan dinámicamente -->
+    </div>
+
+    <!-- FORMULARIO CON CÓDIGO -->
+    <div class="write-btn-wrap">
+      <button class="write-btn" id="open-form-btn">✦ Dejar un mensaje ✦</button>
+    </div>
+
+    <div class="form-container hidden" id="form-container">
+      <div class="form-card">
+        <h3>Escribe tu mensaje 🌸</h3>
+
+        <!-- Paso 1: código -->
+        <div id="step-code">
+          <label>Código secreto</label>
+          <input type="password" id="code-input" placeholder="Ingresa el código..." />
+          <p class="form-error hidden" id="code-error">❌ Código incorrecto</p>
+          <button class="btn-primary" id="verify-code-btn">Continuar →</button>
+        </div>
+
+        <!-- Paso 2: mensaje -->
+        <div id="step-msg" class="hidden">
+          <label>Tu nombre</label>
+          <input type="text" id="name-input" placeholder="¿Cómo te llamas?" maxlength="30"/>
+          <label>Tu mensaje para Dache</label>
+          <textarea id="msg-input" placeholder="Escríbele algo bonito..." maxlength="400"></textarea>
+          <p class="char-count"><span id="char-count">0</span>/400</p>
+          <button class="btn-primary" id="submit-msg-btn">Enviar mensaje 🌸</button>
+          <button class="btn-secondary" id="back-btn">← Atrás</button>
+        </div>
+
+        <button class="close-btn" id="close-form-btn">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="floral-divider">🌸 ✦ 🌸</div>
+    <p>con mucho amor, tus amigos &hearts;</p>
+    <p class="footer-date">30 · 03 · 2025</p>
+    <p class="footer-copy">© Creado por Samil G. Pérez Santana</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
