@@ -6,24 +6,41 @@
 const CONFIG = {
   BIRTHDAY:    new Date('2026-03-30T00:00:00'),
   SECRET_CODE: '0880',
-  SONG_TITLE:  'Tu canción especial',   // ← Cambia el nombre de la canción
-  SONG_ARTIST: '',                       // ← Cambia el artista
-  STORAGE_KEY: 'dache_birthday_messages',
+  SONG_TITLE:  'Tu canción especial',
+  SONG_ARTIST: '',
 };
 // ──────────────────────────────────────────────
 
 
+// ---- FIREBASE ----
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDfuFrYuyYdqNcipB9usS6X5_1OvLjIruA",
+  authDomain:        "dache-birthday.firebaseapp.com",
+  projectId:         "dache-birthday",
+  storageBucket:     "dache-birthday.firebasestorage.app",
+  messagingSenderId: "976446287016",
+  appId:             "1:976446287016:web:8467df8cd40058edb6e69d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+
 // ---- REPRODUCTOR DE AUDIO ----
-const audio      = document.getElementById('bg-audio');
-const playBtn    = document.getElementById('ap-play-btn');
-const apIcon     = document.getElementById('ap-icon');
-const apFill     = document.getElementById('ap-fill');
-const apCurrent  = document.getElementById('ap-current');
-const apDuration = document.getElementById('ap-duration');
-const apVolume   = document.getElementById('ap-volume');
-const apPlayer   = document.getElementById('audio-player');
-const apTitle    = document.getElementById('ap-song-title');
-const apArtist   = document.getElementById('ap-song-artist');
+const audio       = document.getElementById('bg-audio');
+const playBtn     = document.getElementById('ap-play-btn');
+const apIcon      = document.getElementById('ap-icon');
+const apFill      = document.getElementById('ap-fill');
+const apCurrent   = document.getElementById('ap-current');
+const apDuration  = document.getElementById('ap-duration');
+const apVolume    = document.getElementById('ap-volume');
+const apPlayer    = document.getElementById('audio-player');
+const apTitle     = document.getElementById('ap-song-title');
+const apArtist    = document.getElementById('ap-song-artist');
 const progressBar = document.querySelector('.ap-progress-bar');
 
 apTitle.textContent  = CONFIG.SONG_TITLE;
@@ -86,8 +103,8 @@ function createPetal() {
   p.style.left     = Math.random() * 100 + 'vw';
   p.style.fontSize = (0.8 + Math.random() * 1) + 'rem';
   p.style.opacity  = 0.4 + Math.random() * 0.4;
-  p.style.animationDuration  = (6 + Math.random() * 8) + 's';
-  p.style.animationDelay     = (Math.random() * 5) + 's';
+  p.style.animationDuration = (6 + Math.random() * 8) + 's';
+  p.style.animationDelay    = (Math.random() * 5) + 's';
   petalsContainer.appendChild(p);
   setTimeout(() => p.remove(), 15000);
 }
@@ -125,22 +142,13 @@ updateCountdown();
 setInterval(updateCountdown, 1000);
 
 
-// ---- MENSAJES ----
-function getMessages() {
-  try {
-    return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
-  } catch { return []; }
+// ---- MENSAJES (FIREBASE) ----
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function saveMessage(name, text) {
-  const msgs = getMessages();
-  msgs.unshift({ name, text, date: new Date().toLocaleDateString('es-DO') });
-  localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(msgs));
-}
-
-function renderMessages() {
+function renderMessages(msgs) {
   const grid = document.getElementById('messages-grid');
-  const msgs = getMessages();
   grid.innerHTML = '';
 
   if (msgs.length === 0) {
@@ -149,21 +157,33 @@ function renderMessages() {
   }
 
   msgs.forEach(m => {
+    const date = m.timestamp?.toDate
+      ? m.timestamp.toDate().toLocaleDateString('es-DO')
+      : new Date().toLocaleDateString('es-DO');
     const card = document.createElement('div');
     card.className = 'msg-card';
     card.innerHTML = `
-      <p class="msg-name">${escapeHtml(m.name)} · ${m.date}</p>
+      <p class="msg-name">${escapeHtml(m.name)} · ${date}</p>
       <p class="msg-text">${escapeHtml(m.text)}</p>
     `;
     grid.appendChild(card);
   });
 }
 
-function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// Escucha en tiempo real
+const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
+onSnapshot(q, snapshot => {
+  const msgs = snapshot.docs.map(d => d.data());
+  renderMessages(msgs);
+});
 
-renderMessages();
+async function saveMessage(name, text) {
+  await addDoc(collection(db, 'messages'), {
+    name,
+    text,
+    timestamp: serverTimestamp()
+  });
+}
 
 
 // ---- FORMULARIO ----
@@ -194,7 +214,6 @@ function closeForm() {
   charCount.textContent = '0';
 }
 
-// Verificar código
 document.getElementById('verify-code-btn').addEventListener('click', () => {
   if (codeInput.value.trim() === CONFIG.SECRET_CODE) {
     stepCode.classList.add('hidden');
@@ -214,33 +233,33 @@ codeInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('verify-code-btn').click();
 });
 
-// Volver atrás
 document.getElementById('back-btn').addEventListener('click', () => {
   stepMsg.classList.add('hidden');
   stepCode.classList.remove('hidden');
   codeInput.value = '';
 });
 
-// Contador de caracteres
 msgInput.addEventListener('input', () => {
   charCount.textContent = msgInput.value.length;
 });
 
-// Enviar mensaje
-document.getElementById('submit-msg-btn').addEventListener('click', () => {
+document.getElementById('submit-msg-btn').addEventListener('click', async () => {
   const name = nameInput.value.trim();
   const text = msgInput.value.trim();
 
   if (!name) { nameInput.focus(); nameInput.style.borderColor = '#c0392b'; setTimeout(() => nameInput.style.borderColor = '', 1500); return; }
   if (!text) { msgInput.focus();  msgInput.style.borderColor  = '#c0392b'; setTimeout(() => msgInput.style.borderColor  = '', 1500); return; }
 
-  saveMessage(name, text);
-  renderMessages();
+  const btn = document.getElementById('submit-msg-btn');
+  btn.textContent = 'Enviando... 🌸';
+  btn.disabled = true;
+
+  await saveMessage(name, text);
+
   closeForm();
-
-  // Confetti de pétalos
   for (let i = 0; i < 20; i++) createPetal();
-
-  // Scroll a mensajes
   document.querySelector('.messages-section').scrollIntoView({ behavior: 'smooth' });
+
+  btn.textContent = 'Enviar mensaje 🌸';
+  btn.disabled = false;
 });
